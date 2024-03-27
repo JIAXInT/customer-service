@@ -11,6 +11,8 @@ onUpdated(() => {
   scrollToBottom();
 });
 
+const text = "text";
+
 const user = {
   id: "kefu123",
   imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
@@ -53,6 +55,10 @@ const submit = (type, msg) => {
     time: Date.now(),
   };
   chatHistory.value.push(newMsg);
+
+  console.log(newMsg);
+  console.log(msg);
+  console.log(textareaMsg.value);
   textareaMsg.value = "";
 };
 
@@ -83,8 +89,8 @@ const onImgSelected = (event) => {
               <div class="message" :class="item.id == user.id ? 'right' : 'left'">
                 <div class="author"><img :src="item.imgUrl" alt="" /></div>
                 <div class="msg">
-                  <img :src="item.pic" alt="" />
-                  {{ item.content }}
+                  <img v-if="item.msgType == 'pic'" :src="item.pic" alt="" />
+                  <p v-else>{{ item.content }}</p>
                 </div>
               </div>
             </template>
@@ -105,8 +111,8 @@ const onImgSelected = (event) => {
                 <input type="file" accept="image/*" @change="onImgSelected" />
               </div>
             </div>
-            <textarea v-model="msg" cols="30" rows="10" @keydown.enter="submit(textareaMsg)"></textarea>
-            <button id="button" @click="submit(textareaMsg)">发送</button>
+            <textarea v-model="textareaMsg" cols="30" rows="10" @keydown.enter="submit(text, textareaMsg)"></textarea>
+            <button id="button" @click="submit(text, textareaMsg)">发送</button>
           </div>
         </div>
         <div class="chat__content__sidebar"></div>
@@ -127,4 +133,3 @@ const onImgSelected = (event) => {
 <style>
 @import "../assets/main.css";
 </style>
-@/utils/scrollToBottom
