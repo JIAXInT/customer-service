@@ -1,4 +1,74 @@
-<script setup></script>
+<script setup>
+import { ref, onUpdated } from "vue";
+import formatDate from "@/utils/formatDate.js";
+import emoji from "@/assets/emoji.js";
+import scrollToBottom from "@/utils/scrollToBottom.js";
+
+const emojiBoxShow = ref(false);
+const emojiArr = emoji.split(",");
+
+onUpdated(() => {
+  scrollToBottom();
+});
+
+const user = {
+  id: "kefu123",
+  imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
+  name: "客服",
+};
+
+const chatHistory = ref([
+  {
+    id: "user2653",
+    msgType: "text",
+    content: "你好",
+    imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
+    time: 1711526160846,
+  },
+  {
+    id: "kefu123",
+    msgType: "text",
+    content: "你好 我是客服",
+    imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
+    time: 1711526289767,
+  },
+  {
+    id: "user2653",
+    msgType: "text",
+    content: "你好 我想咨询",
+    imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
+    time: 1711527034671,
+  },
+]);
+
+const textareaMsg = ref("");
+
+const submit = (type, msg) => {
+  let newMsg = {
+    id: user.id,
+    msgType: type,
+    pic: msg,
+    content: msg,
+    imgUrl: user.imgUrl,
+    time: Date.now(),
+  };
+  chatHistory.value.push(newMsg);
+  textareaMsg.value = "";
+};
+
+const onImgSelected = (event) => {
+  // event.target.files 是一个 FileList 对象，包含了所有选定的文件
+  const files = event.target.files;
+  // 解析图片
+  const file = files[0];
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = function () {
+    // 生成图片
+    submit("pic", reader.result);
+  };
+};
+</script>
 
 <template>
   <div>
@@ -7,29 +77,36 @@
       <div class="chat__content">
         <div class="chat__content__item">
           <div class="chat__container" id="scrollableDiv">
-            <div class="time">3月21日 11:30</div>
-            <div class="message left">
-              <div class="author"><img src="http://news.china-ef.com/2022/images/slogo.png" alt="" /></div>
-              <div class="msg">testtest</div>
-            </div>
-            <div class="message right">
-              <div class="author"><img src="http://news.china-ef.com/2022/images/slogo.png" alt="" /></div>
-              <div class="msg">testtestesttesttesttesttetesttestesttesttesttesttesttesttesttesttesttesttesttesttsttesttesttesttesttesttesttestt</div>
-            </div>
+            <template v-for="(item, index) in chatHistory" :key="item.id">
+              <!-- 判断item.time与上一次间隔五分钟再显示，第一次除外 -->
+              <div class="time" v-if="index == 0 || item.time - chatHistory[index - 1].time > 300000">{{ formatDate(item.time) }}</div>
+              <div class="message" :class="item.id == user.id ? 'right' : 'left'">
+                <div class="author"><img :src="item.imgUrl" alt="" /></div>
+                <div class="msg">
+                  <img :src="item.pic" alt="" />
+                  {{ item.content }}
+                </div>
+              </div>
+            </template>
           </div>
           <div class="chat__control">
             <div class="toolbar">
               <div class="toolbar__item">
-                <span id="emoji"><img src="./images/emoji.svg" alt="" /></span>
-                <div class="emoji__box"></div>
+                <span @click="emojiBoxShow = !emojiBoxShow"><img src="/emoji.svg" alt="" /></span>
+
+                <div class="emoji__box" v-if="emojiBoxShow">
+                  <template v-for="(item, index) in emojiArr" :key="index">
+                    <div class="emoji__item" @click="msg += item">{{ item }}</div>
+                  </template>
+                </div>
               </div>
               <div class="toolbar__item">
-                <span><img src="./images/photo.svg" alt="" /></span>
-                <input type="file" id="file" accept="image/*" />
+                <span><img src="/photo.svg" alt="" /></span>
+                <input type="file" accept="image/*" @change="onImgSelected" />
               </div>
             </div>
-            <textarea name="" id="textarea" cols="30" rows="10"></textarea>
-            <button id="button" onclick="submit()">发送</button>
+            <textarea v-model="msg" cols="30" rows="10" @keydown.enter="submit(textareaMsg)"></textarea>
+            <button id="button" @click="submit(textareaMsg)">发送</button>
           </div>
         </div>
         <div class="chat__content__sidebar"></div>
@@ -39,7 +116,7 @@
         <form action="">
           <input type="text" placeholder="请输入您的姓名" />
           <input type="text" placeholder="请输入您的电话" />
-          <textarea name="" id="" cols="30" rows="10" placeholder="请填写留言内容"></textarea>
+          <textarea name="" id="" cols="30" rows="10" v-model="msg" placeholder="请填写留言内容"></textarea>
           <button>提交留言</button>
         </form>
       </div>
@@ -50,3 +127,4 @@
 <style>
 @import "../assets/main.css";
 </style>
+@/utils/scrollToBottom

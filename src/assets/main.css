@@ -132,14 +132,14 @@ body {
 .chat__container .message .author {
   width: 40px;
   height: 40px;
-  border-radius: 3px;
+  border-radius: 50%;
   overflow: hidden;
 }
 
 .chat__container .message .author img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .chat__container .message .msg {
@@ -195,7 +195,7 @@ body {
 }
 
 .toolbar .toolbar__item .emoji__box {
-  display: none;
+  display: flex;
   justify-content: flex-start;
   align-content: flex-start;
   flex-wrap: wrap;
