@@ -3,6 +3,7 @@ import { ref, onUpdated } from "vue";
 import formatDate from "@/utils/formatDate.js";
 import emoji from "@/assets/emoji.js";
 import scrollToBottom from "@/utils/scrollToBottom.js";
+import { socket } from "@/socket";
 
 const emojiBoxShow = ref(false);
 const emojiArr = emoji.split(",");
@@ -14,31 +15,31 @@ onUpdated(() => {
 const text = "text";
 
 const user = {
-  id: "kefu123",
-  imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
-  name: "客服",
+  id: "user2653",
+  imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
+  name: "客户",
 };
 
 const chatHistory = ref([
   {
-    id: "user2653",
-    msgType: "text",
-    content: "你好",
-    imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
-    time: 1711526160846,
-  },
-  {
     id: "kefu123",
     msgType: "text",
-    content: "你好 我是客服",
+    content: "你好我是客服",
     imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
-    time: 1711526289767,
+    time: 1711526160846,
   },
   {
     id: "user2653",
     msgType: "text",
     content: "你好 我想咨询",
     imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
+    time: 1711526289767,
+  },
+  {
+    id: "kefu123",
+    msgType: "text",
+    content: "你好 ",
+    imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
     time: 1711527034671,
   },
 ]);
@@ -54,16 +55,21 @@ const submit = (type, msg) => {
     imgUrl: user.imgUrl,
     time: Date.now(),
   };
-  chatHistory.value.push(newMsg);
-
-  console.log(newMsg);
-  console.log(msg);
-  console.log(textareaMsg.value);
+  socket.emit("client message", JSON.stringify(newMsg));
   textareaMsg.value = "";
 };
 
+socket.on("customer message", (msg) => {
+  let newMsg = JSON.parse(msg);
+  chatHistory.value.push(newMsg);
+});
+
+socket.on("client message", (msg) => {
+  let newMsg = JSON.parse(msg);
+  chatHistory.value.push(newMsg);
+});
+
 const onImgSelected = (event) => {
-  // event.target.files 是一个 FileList 对象，包含了所有选定的文件
   const files = event.target.files;
   // 解析图片
   const file = files[0];
@@ -102,7 +108,7 @@ const onImgSelected = (event) => {
 
                 <div class="emoji__box" v-if="emojiBoxShow">
                   <template v-for="(item, index) in emojiArr" :key="index">
-                    <div class="emoji__item" @click="msg += item">{{ item }}</div>
+                    <div class="emoji__item" @click="textareaMsg += item">{{ item }}</div>
                   </template>
                 </div>
               </div>
