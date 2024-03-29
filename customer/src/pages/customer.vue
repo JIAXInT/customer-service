@@ -4,9 +4,19 @@ import formatDate from "@/utils/formatDate.js";
 import emoji from "@/assets/emoji.js";
 import scrollToBottom from "@/utils/scrollToBottom.js";
 import { socket } from "@/socket";
+import { useClientStore } from "@/stores/client.js";
+
+// 取到客户数据
+const clientStore = useClientStore();
+const { clients } = clientStore;
+
+console.log(clients);
 
 const emojiBoxShow = ref(false);
 const emojiArr = emoji.split(",");
+
+const activeIndex = ref(0); //当前选中的index
+const currentClient = ref(clients[0]);
 
 onUpdated(() => {
   scrollToBottom();
@@ -20,29 +30,7 @@ const user = {
   name: "客服",
 };
 
-const chatHistory = ref([
-  {
-    id: "kefu123",
-    msgType: "text",
-    content: "你好我是客服",
-    imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
-    time: 1711526160846,
-  },
-  {
-    id: "user2653",
-    msgType: "text",
-    content: "你好 我想咨询",
-    imgUrl: "https://pic.616pic.com/ys_img/00/04/44/tTYRjRdx91.jpg",
-    time: 1711526289767,
-  },
-  {
-    id: "kefu123",
-    msgType: "text",
-    content: "你好 ",
-    imgUrl: "https://img95.699pic.com/photo/50122/6771.jpg_wh300.jpg",
-    time: 1711527034671,
-  },
-]);
+const chatHistory = ref(clients[0].chatHistory);
 
 const textareaMsg = ref("");
 
@@ -80,6 +68,14 @@ const onImgSelected = (event) => {
     submit("pic", reader.result);
   };
 };
+
+const onUserlistClick = (item, index) => {
+  chatHistory.value = item.chatHistory;
+  activeIndex.value = index;
+  currentClient.value = item;
+
+  console.log(item.chatHistory[item.chatHistory.length - 1].content);
+};
 </script>
 
 <template>
@@ -88,41 +84,20 @@ const onImgSelected = (event) => {
     <div class="chat__content">
       <div class="chat__content__list">
         <ul id="userList">
-          <li class="active">
-            <div class="author">
-              <span class="status active"></span>
-              <i class="msgs">99</i>
-              <img src="http://news.china-ef.com/2022/images/slogo.png" alt="" />
-            </div>
-            <div class="name">
-              <span>游客</span>
-              <p>test</p>
-            </div>
-            <div class="time">3月21日 11:30</div>
-          </li>
-          <li>
-            <div class="author">
-              <span class="status"></span>
-              <img src="http://news.china-ef.com/2022/images/slogo.png" alt="" />
-            </div>
-            <div class="name">
-              <span>游客2</span>
-              <p>你好</p>
-            </div>
-            <div class="time">3月21日 11:30</div>
-          </li>
-          <li>
-            <div class="author">
-              <span class="status active"></span>
-              <i class="msgs">8</i>
-              <img src="http://news.china-ef.com/2022/images/slogo.png" alt="" />
-            </div>
-            <div class="name">
-              <span>游客3</span>
-              <p>品牌如何加盟</p>
-            </div>
-            <div class="time">3月21日 11:30</div>
-          </li>
+          <template v-for="(item, index) in clients" :key="clients.id">
+            <li :class="{ active: activeIndex === index }" @click="onUserlistClick(item, index)">
+              <div class="author">
+                <span class="status" :class="{ active: item.online }"></span>
+                <!-- <i class="msgs"></i> -->
+                <img :src="item.imgUrl" alt="" />
+              </div>
+              <div class="name">
+                <span>{{ item.name }}</span>
+                <p>{{ item.chatHistory[item.chatHistory.length - 1].content }}</p>
+              </div>
+              <div class="time">{{ formatDate(item.chatHistory[item.chatHistory.length - 1].time) }}</div>
+            </li>
+          </template>
         </ul>
       </div>
       <div class="chat__content__item">
@@ -161,25 +136,25 @@ const onImgSelected = (event) => {
       <div class="chat__content__sidebar">
         <div class="name">
           <div class="avatar">
-            <img src="http://news.china-ef.com/2022/images/slogo.png" alt="" />
+            <img :src="currentClient.imgUrl" alt="" />
           </div>
-          <span id="authorName">游客</span>
-          <input type="text" id="editAuthorName" style="display: none" name="" />
+          <span id="authorName">{{ currentClient.name }}</span>
+          <input type="text" id="editAuthorName" v-model="currentClient.name" style="display: none" name="" />
         </div>
 
         <div class="user__info">
           <div class="info__item">
             <div class="item__title">电话</div>
             <div class="item__content">
-              <span id="authorPhone">18665696325</span>
-              <input type="number" id="editAuthorPhone" style="display: none" name="" />
+              <span id="authorPhone">{{ currentClient.phone }}</span>
+              <input type="number" id="editAuthorPhone" v-model="currentClient.phone" style="display: none" name="" />
             </div>
           </div>
           <div class="info__item">
             <div class="item__title">备注</div>
             <div class="item__content">
-              <span id="remark"></span>
-              <input type="text" id="editRemark" style="display: none" name="" />
+              <span id="remark">{{ currentClient.remark }}</span>
+              <input type="text" id="editRemark" v-model="currentClient.remark" style="display: none" name="" />
             </div>
           </div>
         </div>
